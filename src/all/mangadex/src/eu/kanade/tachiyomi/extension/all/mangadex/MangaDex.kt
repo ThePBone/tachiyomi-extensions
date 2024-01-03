@@ -2,14 +2,12 @@ package eu.kanade.tachiyomi.extension.all.mangadex
 
 import android.app.Application
 import android.content.SharedPreferences
-import android.os.Build
 import android.widget.Toast
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.PreferenceScreen
 import androidx.preference.SwitchPreferenceCompat
-import eu.kanade.tachiyomi.AppInfo
 import eu.kanade.tachiyomi.extension.all.mangadex.dto.AggregateDto
 import eu.kanade.tachiyomi.extension.all.mangadex.dto.AggregateVolume
 import eu.kanade.tachiyomi.extension.all.mangadex.dto.AtHomeDto
@@ -59,21 +57,12 @@ abstract class MangaDex(final override val lang: String, private val dexLang: St
 
     private val helper = MangaDexHelper(lang)
 
-    final override fun headersBuilder(): Headers.Builder {
-        val extraHeader = "Android/${Build.VERSION.RELEASE} " +
-            "Tachiyomi/${AppInfo.getVersionName()} " +
-            "MangaDex/1.4.190"
-
-        val builder = super.headersBuilder().apply {
-            set("Referer", "$baseUrl/")
-            set("Extra", extraHeader)
-        }
-
-        return builder
-    }
+    final override fun headersBuilder() = Headers.Builder()
+        .add("Referer", "$baseUrl/")
+        .add("User-Agent", System.getProperty("http.agent"))
 
     override val client = network.client.newBuilder()
-        .rateLimit(3)
+        .rateLimit(30)
         .addInterceptor(MdAtHomeReportInterceptor(network.client, headers))
         .addInterceptor(MdUserAgentInterceptor(preferences, dexLang))
         .build()
